@@ -1,6 +1,6 @@
 const express= require("express")
 const cors=require("cors")
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app=express();
 
@@ -40,13 +40,47 @@ async function run() {
         const cars=await cursor.toArray();
         res.send(cars)
     })
-    
+    app.get('/latestcars',async(req,res)=>
+    {
+      const cursor=carCollection.find().sort({createdAt:-1}).limit(6);
+      const cars=await cursor.toArray()
+      res.send(cars)
+    })
+    app.get('/cardetails/:id',async(req,res)=>
+    {
+      const id=req.params.id
+      console.log(id);
+
+      const query={_id:new ObjectId(id)}
+       const car=await carCollection.findOne(query);
+     res.send(car);
+    })
+    app.get('/mycars',async(req,res)=>
+    {
+      const email=req.query.email;
+      console.log(email)
+      const query={}
+      query.providerEmail=email;
+      const cursor= carCollection.find(query)
+      const cars=await cursor.toArray()
+      res.send(cars)
+
+    })
 
     app.post('/cars',async(req,res)=>
     {
         const car=req.body;
          const result=await carCollection.insertOne(car);
             res.send(result);
+    })
+    app.delete('/cars/:id',async(req,res)=>
+    {
+       const id=req.params.id;
+      console.log(id);
+     const query={_id:new ObjectId(id)};
+     const result=await carCollection.deleteOne(query);
+     res.send(result)
+
     })
     
     await client.db("admin").command({ ping: 1 });
