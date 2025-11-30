@@ -72,6 +72,25 @@ async function run() {
         const car=req.body;
          const result=await carCollection.insertOne(car);
             res.send(result);
+
+    })
+
+
+    app.patch('/updatecars',async(req,res)=>
+    {
+      const updatedCar=req.body
+      const id=updatedCar._id
+      console.log(id)
+       const filter = { _id: new ObjectId(id) };
+       delete updatedCar._id;
+
+  const result = await carCollection.updateOne(
+    filter,
+    { $set: updatedCar }
+  );
+      res.send(result)
+
+     
     })
     app.delete('/cars/:id',async(req,res)=>
     {
@@ -80,7 +99,7 @@ async function run() {
      const query={_id:new ObjectId(id)};
      const result=await carCollection.deleteOne(query);
      res.send(result)
-
+          
     })
     
     await client.db("admin").command({ ping: 1 });
