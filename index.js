@@ -67,6 +67,16 @@ async function run() {
       res.send(cars)
 
     })
+    app.get('/mybooking',async(req,res)=>
+    {
+      const email = req.query.email;
+      const query={}
+      query.bookedby=email;
+      const cursor=bookingCollection.find(query)
+       const mybooking=await cursor.toArray();
+       res.send(mybooking)
+      
+    })
 
     app.post('/cars',async(req,res)=>
     {
@@ -84,7 +94,12 @@ async function run() {
     })
     app.patch('/bookcar',async(req,res)=>
     {
-
+      const id=req.body._id
+      console.log(id,req.body.staus);
+      const filter={_id: new ObjectId(id)}
+     
+      const result =await carCollection.updateOne(filter,{$set: {status:req.body.status}})
+res.send(result);
     })
 
 
@@ -112,6 +127,14 @@ async function run() {
      const result=await carCollection.deleteOne(query);
      res.send(result)
           
+    })
+    app.delete('/booking/:id',async(req,res)=>
+    {
+      const id=req.params.id;
+      console.log(id);
+     const query={_id:new ObjectId(id)};
+     const result=await bookingCollection.deleteOne(query);
+     res.send(result);
     })
     
     await client.db("admin").command({ ping: 1 });
