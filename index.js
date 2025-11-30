@@ -32,7 +32,8 @@ async function run() {
     await client.connect();
 
     const carDB=client.db('cardb');
-    const carCollection=carDB.collection('cars');
+    const carCollection=carDB.collection('cars'); 
+    const bookingCollection=carDB.collection('carsbooking')
 
     app.get('/allcars',async(req,res)=>
     {
@@ -72,6 +73,17 @@ async function run() {
         const car=req.body;
          const result=await carCollection.insertOne(car);
             res.send(result);
+
+    })
+
+    app.post('/bookingcars',async(req,res)=>
+    {
+      const newBooking=req.body;
+      const result=await bookingCollection.insertOne(newBooking);
+      res.send(result)
+    })
+    app.patch('/bookcar',async(req,res)=>
+    {
 
     })
 
