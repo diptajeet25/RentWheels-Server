@@ -7,7 +7,7 @@ const app=express();
 
 
 const port=process.env.PORT || 3000;
-console.log(process.env.DB_PASS,process.env.DB_USER);
+
 
 app.use(cors());
 app.use(express.json());
@@ -15,7 +15,7 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hm8fata.mongodb.net/?appName=Cluster0`;
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hey Start With Car Rental')
 })
 
 
