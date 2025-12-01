@@ -1,17 +1,18 @@
 const express= require("express")
 const cors=require("cors")
+require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app=express();
 
 
 const port=process.env.PORT || 3000;
-
+console.log(process.env.DB_PASS,process.env.DB_USER);
 
 app.use(cors());
 app.use(express.json());
 
-const uri = "mongodb+srv://Car-Rental:UQANfxfZKfsDO9lQ@cluster0.hm8fata.mongodb.net/?appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hm8fata.mongodb.net/?appName=Cluster0`;
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -50,7 +51,7 @@ async function run() {
     app.get('/cardetails/:id',async(req,res)=>
     {
       const id=req.params.id
-      console.log(id);
+    
 
       const query={_id:new ObjectId(id)}
        const car=await carCollection.findOne(query);
@@ -59,7 +60,7 @@ async function run() {
     app.get('/mycars',async(req,res)=>
     {
       const email=req.query.email;
-      console.log(email)
+  
       const query={}
       query.providerEmail=email;
       const cursor= carCollection.find(query)
@@ -95,7 +96,7 @@ async function run() {
     app.patch('/bookcar',async(req,res)=>
     {
       const id=req.body._id
-      console.log(id,req.body.staus);
+      
       const filter={_id: new ObjectId(id)}
      
       const result =await carCollection.updateOne(filter,{$set: {status:req.body.status}})
@@ -107,7 +108,7 @@ res.send(result);
     {
       const updatedCar=req.body
       const id=updatedCar._id
-      console.log(id)
+     
        const filter = { _id: new ObjectId(id) };
        delete updatedCar._id;
 
@@ -122,7 +123,7 @@ res.send(result);
     app.delete('/cars/:id',async(req,res)=>
     {
        const id=req.params.id;
-      console.log(id);
+      
      const query={_id:new ObjectId(id)};
      const result=await carCollection.deleteOne(query);
      res.send(result)
@@ -131,7 +132,7 @@ res.send(result);
     app.delete('/booking/:id',async(req,res)=>
     {
       const id=req.params.id;
-      console.log(id);
+     
      const query={_id:new ObjectId(id)};
      const result=await bookingCollection.deleteOne(query);
      res.send(result);
