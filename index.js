@@ -36,15 +36,85 @@ async function run() {
     const carCollection=carDB.collection('cars'); 
     const bookingCollection=carDB.collection('carsbooking')
 
-    app.get('/allcars',async(req,res)=>
-    {
-        const cursor=carCollection.find();
-        const cars=await cursor.toArray();
-        res.send(cars)
+app.get('/allcars', async (req, res) => {
+  try {
+    const search = req.query.search || ""
+    const category = req.query.category || ""
+    const status = req.query.status || ""
+    const sort = req.query.sort || ""
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 8
+    const skip = (page - 1) * limit
+
+    const matchQuery = {}
+
+    if (search) {
+      matchQuery.carName = { $regex: search, $options: "i" }
+    }
+    if (category) {
+      matchQuery.category = category
+    }
+    if (status) {
+      matchQuery.status = status
+    }
+
+    let sortStage = {}
+    if (sort === "priceAsc") sortStage = { rentNum: 1 }
+    else if (sort === "priceDesc") sortStage = { rentNum: -1 }
+    else if (sort === "latest") sortStage = { createdAt: -1 }
+
+    const totalCount = await carCollection.countDocuments(matchQuery)
+
+    const cars = await carCollection.aggregate([
+      { $match: matchQuery },
+      { $addFields: { rentNum: { $toInt: "$rent" } } },
+      { $sort: Object.keys(sortStage).length ? sortStage : { _id: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ]).toArray()
+
+    res.send({
+      cars,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: page
     })
+  } catch (error) {
+    res.status(500).send({ message: "Server Error" })
+  }
+})
+
+app.get('/dashboard/car-stats', async (req, res) => {
+  try {
+    const totalCars = await carCollection.countDocuments()
+    const bookedCars = await carCollection.countDocuments({ status: "Booked" })
+    const availableCars = await carCollection.countDocuments({ status: "Available" })
+    const suvCars = await carCollection.countDocuments({ category: "SUV" })
+    const sedanCars = await carCollection.countDocuments({ category: "Sedan" })
+    const hatchbackCars = await carCollection.countDocuments({ category: "Hatchback" })
+    const electricCars = await carCollection.countDocuments({ category: "Electric" })
+    const luxuryCars = await carCollection.countDocuments({ category: "Luxury" })
+
+    res.send({
+      totalCars,
+      bookedCars,
+      availableCars,
+      suvCars,
+      sedanCars,
+      hatchbackCars,
+      electricCars,
+      luxuryCars
+    })
+  } catch (error) {
+    res.status(500).send({ message: "Failed to load dashboard stats" })
+  }
+})
+
+
+
     app.get('/latestcars',async(req,res)=>
     {
-      const cursor=carCollection.find().sort({createdAt:-1}).limit(6);
+      const cursor=carCollection.find().sort({createdAt:-1}).limit(8);
       const cars=await cursor.toArray()
       res.send(cars)
     })
